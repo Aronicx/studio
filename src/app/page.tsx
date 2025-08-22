@@ -4,7 +4,9 @@ import { useState, useMemo } from 'react';
 import { users } from '@/lib/data';
 import { UserCard } from '@/components/user-card';
 import { Input } from '@/components/ui/input';
-import { Search, Users } from 'lucide-react';
+import { Search, Users, Pencil } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -13,6 +15,7 @@ export default function Home() {
     if (!searchQuery) {
       return users;
     }
+    // Since there's only one user template, we allow searching to find it if needed.
     return users.filter(
       (user) =>
         user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -27,30 +30,28 @@ export default function Home() {
         <p className="text-lg text-muted-foreground">Find and connect with your peers.</p>
       </header>
 
-      <div className="mb-8 max-w-lg mx-auto">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search by name or roll number..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 text-base"
-          />
+      {users.length > 0 ? (
+        <div className="text-center mb-12">
+            <h2 className="text-2xl font-semibold mb-2">Welcome!</h2>
+            <p className="text-muted-foreground mb-4">
+              To get started, click the card below to create and customize your profile.
+            </p>
         </div>
-      </div>
+      ): null}
+
 
       {filteredUsers.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 justify-center">
           {filteredUsers.map((user) => (
             <UserCard key={user.id} user={user} />
           ))}
         </div>
       ) : (
-        <div className="text-center py-16">
+         <div className="text-center py-16">
           <Users className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-semibold">No users found</h2>
-          <p className="text-muted-foreground">Try adjusting your search query.</p>
+          <h2 className="text-2xl font-semibold">No users yet</h2>
+          <p className="text-muted-foreground">Be the first one to join!</p>
+          {/* This part may not be visible if the initial user is always present */}
         </div>
       )}
     </main>
