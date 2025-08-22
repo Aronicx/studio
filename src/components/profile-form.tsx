@@ -46,7 +46,14 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
     defaultValues: {
       name: user.name,
       dailyThought: user.dailyThought,
-      contact: user.contact,
+      contact: {
+        phone: user.contact.phone || '',
+        instagram: user.contact.instagram || '',
+        snapchat: user.contact.snapchat || '',
+        discord: user.contact.discord || '',
+        gmail: user.contact.gmail || '',
+        other: user.contact.other || ''
+      },
       hobbies: user.hobbies.map(h => ({ value: h })),
       newPassword: '',
       confirmPassword: '',
@@ -62,6 +69,7 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
     const updatedUser: User = {
       ...user,
       name: data.name,
+      id: data.name.toLowerCase().replace(/\s+/g, '-'), // Update ID based on new name
       dailyThought: data.dailyThought || '',
       contact: data.contact,
       hobbies: data.hobbies.map(h => h.value),
@@ -106,16 +114,16 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
           <CardDescription>Share how others can connect with you.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><Label>Phone</Label><Input {...form.register('contact.phone')} /></div>
-          <div><Label>Instagram</Label><Input {...form.register('contact.instagram')} /></div>
-          <div><Label>Snapchat</Label><Input {...form.register('contact.snapchat')} /></div>
-          <div><Label>Discord</Label><Input {...form.register('contact.discord')} /></div>
+          <div><Label>Phone</Label><Input placeholder="Your phone number" {...form.register('contact.phone')} /></div>
+          <div><Label>Instagram</Label><Input placeholder="Your Instagram username" {...form.register('contact.instagram')} /></div>
+          <div><Label>Snapchat</Label><Input placeholder="Your Snapchat username" {...form.register('contact.snapchat')} /></div>
+          <div><Label>Discord</Label><Input placeholder="Your Discord username" {...form.register('contact.discord')} /></div>
           <div>
             <Label>Gmail</Label>
-            <Input {...form.register('contact.gmail')} />
+            <Input placeholder="Your Gmail address" {...form.register('contact.gmail')} />
             {form.formState.errors.contact?.gmail && <p className="text-sm text-destructive mt-1">{form.formState.errors.contact.gmail.message}</p>}
           </div>
-          <div><Label>Other</Label><Input {...form.register('contact.other')} /></div>
+          <div><Label>Other Link</Label><Input placeholder="Any other link" {...form.register('contact.other')} /></div>
         </CardContent>
       </Card>
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { findUser } from '@/lib/data';
+import { findUser, updateUser } from '@/lib/data';
 import type { User } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,8 +41,9 @@ export default function ProfilePage() {
     }
   }, [params.id]);
   
-  const handleSave = (updatedUser: User) => {
-    setUser(updatedUser);
+  const handleSave = (updatedUserData: User) => {
+    updateUser(updatedUserData);
+    setUser(updatedUserData);
     setIsEditing(false);
   };
 
@@ -76,7 +77,7 @@ export default function ProfilePage() {
         <div className="space-y-8">
           <Card className="overflow-hidden">
             <div className="relative h-48 md:h-64 bg-muted">
-                <Image src={user.profilePicture} alt={user.name} layout="fill" objectFit="cover" data-ai-hint="profile picture" />
+                <Image src={user.profilePicture} alt={user.name} fill objectFit="cover" data-ai-hint="profile picture" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                  <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6">
                     <h1 className="text-3xl md:text-5xl font-bold text-white font-headline">{user.name}</h1>

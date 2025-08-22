@@ -28,6 +28,17 @@ const generateUsers = (count: number): User[] => {
   return users;
 };
 
-export const users: User[] = generateUsers(200);
+export let users: User[] = generateUsers(200);
 
 export const findUser = (id: string): User | undefined => users.find(u => u.id === id);
+
+export const updateUser = (updatedUser: User): void => {
+    const index = users.findIndex(u => u.id === updatedUser.id);
+    if (index !== -1) {
+        users[index] = updatedUser;
+
+        // A real app would save to a database here.
+        // For this demo, we can simulate persistence if needed,
+        // but for now, it's just in-memory.
+    }
+};
