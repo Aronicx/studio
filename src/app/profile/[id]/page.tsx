@@ -42,7 +42,7 @@ export default function ProfilePage() {
       const foundUser = findUser(String(params.id));
       setUser(foundUser ? {...foundUser} : null);
     }
-  }, [params.id, loggedInUserId]); // Re-fetch or re-evaluate when user changes
+  }, [params.id, loggedInUserId]);
   
   const isOwnProfile = loggedInUserId === user?.id;
   const hasLiked = user && loggedInUserId ? user.likes.includes(loggedInUserId) : false;
