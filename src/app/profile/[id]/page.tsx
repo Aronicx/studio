@@ -124,7 +124,7 @@ export default function ProfilePage() {
             <Card>
               <CardHeader>
                  <CardTitle className="flex items-center gap-2"><Gamepad2 className="h-6 w-6" /> Hobbies</CardTitle>
-              </Header>
+              </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                     {user.hobbies.length > 0 ? user.hobbies.map(hobby => (
