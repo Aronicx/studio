@@ -4,12 +4,14 @@ import { useState, useMemo } from 'react';
 import { users } from '@/lib/data';
 import { UserCard } from '@/components/user-card';
 import { Input } from '@/components/ui/input';
-import { Search, Users, Pencil } from 'lucide-react';
+import { Search, Users, LogIn, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/auth-context';
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
+  const { loggedInUserId, logout } = useAuth();
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery) {
@@ -24,9 +26,24 @@ export default function Home() {
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <header className="text-center mb-12">
-        <h1 className="text-5xl font-bold text-primary mb-2 font-headline">Campus Connect</h1>
-        <p className="text-lg text-muted-foreground">Find and connect with your peers.</p>
+      <header className="flex justify-between items-center mb-12">
+        <div className="text-left">
+          <h1 className="text-5xl font-bold text-primary mb-2 font-headline">Campus Connect</h1>
+          <p className="text-lg text-muted-foreground">Find and connect with your peers.</p>
+        </div>
+        <div>
+          {loggedInUserId ? (
+            <Button onClick={logout}>
+              <LogOut className="mr-2 h-4 w-4" /> Logout
+            </Button>
+          ) : (
+            <Button asChild>
+              <Link href="/login">
+                <LogIn className="mr-2 h-4 w-4" /> Login
+              </Link>
+            </Button>
+          )}
+        </div>
       </header>
 
       <div className="mb-12 max-w-lg mx-auto">

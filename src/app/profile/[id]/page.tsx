@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { findUser, updateUser } from '@/lib/data';
 import type { User } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { PasswordDialog } from '@/components/password-dialog';
 import { ProfileForm } from '@/components/profile-form';
 import { Mail, Phone, Instagram, MessageSquare, Pencil, User as UserIcon, Link as LinkIcon, Gamepad2 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/auth-context';
 
 const SnapchatIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 10c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z"/><path d="M22 10v10c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V10c0-1.1.9-2 2-2h3.2c.2-1.3 1-2.4 2-3 .5-1.1 1.7-2 3.8-2 2.1 0 3.3.9 3.8 2 1 .6 1.8 1.7 2 3H20c1.1 0 2 .9 2 2z"/></svg>
@@ -30,9 +30,11 @@ const ContactItem = ({ icon: Icon, label, value }: { icon: React.ElementType; la
 
 export default function ProfilePage() {
   const params = useParams();
+  const { loggedInUserId } = useAuth();
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
-  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  
+  const isOwnProfile = loggedInUserId === user?.id;
 
   useEffect(() => {
     if (params.id) {
@@ -64,14 +66,7 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto max-w-4xl py-12 px-4">
-      <PasswordDialog
-        open={showPasswordDialog}
-        onOpenChange={setShowPasswordDialog}
-        correctPassword={user.password}
-        onSuccess={() => setIsEditing(true)}
-      />
-
-      {isEditing ? (
+      {isEditing && isOwnProfile ? (
         <ProfileForm user={user} onSave={handleSave} onCancel={() => setIsEditing(false)} />
       ) : (
         <div className="space-y-8">
@@ -83,13 +78,15 @@ export default function ProfilePage() {
                     <h1 className="text-3xl md:text-5xl font-bold text-white font-headline">{user.name}</h1>
                     <Badge variant="secondary" className="mt-2 text-base">Roll No: {user.rollNumber}</Badge>
                 </div>
-                <Button
-                    variant="secondary"
-                    className="absolute top-4 right-4"
-                    onClick={() => setShowPasswordDialog(true)}
-                >
-                    <Pencil className="mr-2 h-4 w-4" /> Edit Profile
-                </Button>
+                {isOwnProfile && (
+                  <Button
+                      variant="secondary"
+                      className="absolute top-4 right-4"
+                      onClick={() => setIsEditing(true)}
+                  >
+                      <Pencil className="mr-2 h-4 w-4" /> Edit Profile
+                  </Button>
+                )}
             </div>
             
             <CardContent className="p-6">
@@ -102,7 +99,7 @@ export default function ProfilePage() {
                 <CardTitle>Daily Thought</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="italic text-muted-foreground">"{user.dailyThought || 'No thought shared today.'}"</p>
+                <p className="italic text-muted-foreground">"{user.dailyThought || 'No thought shared today.'}"}</p>
             </CardContent>
           </Card>
 

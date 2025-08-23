@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Trash2, PlusCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from 'next/navigation';
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -41,6 +42,8 @@ interface ProfileFormProps {
 
 export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
   const { toast } = useToast();
+  const router = useRouter();
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -66,10 +69,13 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
   });
 
   const onSubmit = (data: ProfileFormValues) => {
+    const originalId = user.id;
+    const newId = data.name.toLowerCase().replace(/\s+/g, '-');
+    
     const updatedUser: User = {
       ...user,
       name: data.name,
-      id: data.name.toLowerCase().replace(/\s+/g, '-'), // Update ID based on new name
+      id: newId, 
       dailyThought: data.dailyThought || '',
       contact: data.contact,
       hobbies: data.hobbies.map(h => h.value),
@@ -79,12 +85,17 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
       updatedUser.password = data.newPassword;
       updatedUser.passwordChanged = true;
     }
-
+    
     onSave(updatedUser);
+    
     toast({
         title: "Profile Saved",
         description: "Your changes have been saved successfully.",
     });
+
+    if (originalId !== newId) {
+        router.replace(`/profile/${newId}`);
+    }
   };
 
   return (
