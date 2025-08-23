@@ -16,4 +16,5 @@ export interface User {
   dailyThought: string;
   password: string;
   passwordChanges: number;
+  likes: string[]; // Array of user IDs who liked this profile
 }

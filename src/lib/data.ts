@@ -23,6 +23,7 @@ const generateUsers = (count: number): User[] => {
       dailyThought: "This is your space to share a thought. Make it unique!",
       password: "password", // Default password
       passwordChanges: 0,
+      likes: [], // Initialize likes
     });
   }
   return users;
@@ -67,4 +68,21 @@ export const updateUser = (updatedUser: User): void => {
         // This case shouldn't happen if we're only updating existing users.
         users.push(updatedUser);
     }
+};
+
+export const toggleLike = (profileId: string, likerId: string): User | undefined => {
+    const userToLike = findUser(profileId);
+    if (userToLike) {
+        const likeIndex = userToLike.likes.indexOf(likerId);
+        if (likeIndex > -1) {
+            // User has already liked, so unlike
+            userToLike.likes.splice(likeIndex, 1);
+        } else {
+            // User has not liked, so add like
+            userToLike.likes.push(likerId);
+        }
+        updateUser(userToLike);
+        return userToLike;
+    }
+    return undefined;
 };

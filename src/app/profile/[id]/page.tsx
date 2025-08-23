@@ -1,17 +1,19 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { findUser, updateUser } from '@/lib/data';
+import { findUser, updateUser, toggleLike } from '@/lib/data';
 import type { User } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ProfileForm } from '@/components/profile-form';
-import { Mail, Phone, Instagram, MessageSquare, Pencil, User as UserIcon, Link as LinkIcon, Gamepad2 } from 'lucide-react';
+import { Mail, Phone, Instagram, MessageSquare, Pencil, User as UserIcon, Link as LinkIcon, Gamepad2, Heart } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
+import { cn } from '@/lib/utils';
 
 const SnapchatIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 10c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z"/><path d="M22 10v10c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V10c0-1.1.9-2 2-2h3.2c.2-1.3 1-2.4 2-3 .5-1.1 1.7-2 3.8-2 2.1 0 3.3.9 3.8 2 1 .6 1.8 1.7 2 3H20c1.1 0 2 .9 2 2z"/></svg>
@@ -30,11 +32,13 @@ const ContactItem = ({ icon: Icon, label, value }: { icon: React.ElementType; la
 
 export default function ProfilePage() {
   const params = useParams();
+  const router = useRouter();
   const { loggedInUserId } = useAuth();
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
   
   const isOwnProfile = loggedInUserId === user?.id;
+  const hasLiked = user && loggedInUserId ? user.likes.includes(loggedInUserId) : false;
 
   useEffect(() => {
     if (params.id) {
@@ -47,6 +51,19 @@ export default function ProfilePage() {
     updateUser(updatedUserData);
     setUser(updatedUserData);
     setIsEditing(false);
+  };
+  
+  const handleLikeToggle = () => {
+    if (!loggedInUserId) {
+        router.push('/login');
+        return;
+    }
+    if (user) {
+        const updatedUser = toggleLike(user.id, loggedInUserId);
+        if (updatedUser) {
+            setUser({...updatedUser});
+        }
+    }
   };
 
   if (user === undefined) {
@@ -78,15 +95,22 @@ export default function ProfilePage() {
                     <h1 className="text-3xl md:text-5xl font-bold text-white font-headline">{user.name}</h1>
                     <Badge variant="secondary" className="mt-2 text-base">Roll No: {user.rollNumber}</Badge>
                 </div>
-                {isOwnProfile && (
-                  <Button
-                      variant="secondary"
-                      className="absolute top-4 right-4"
-                      onClick={() => setIsEditing(true)}
-                  >
-                      <Pencil className="mr-2 h-4 w-4" /> Edit Profile
-                  </Button>
-                )}
+                <div className="absolute top-4 right-4 flex gap-2">
+                    {!isOwnProfile && loggedInUserId && (
+                       <Button variant={hasLiked ? 'default' : 'secondary'} onClick={handleLikeToggle}>
+                         <Heart className={cn("mr-2 h-4 w-4", hasLiked && "fill-current text-red-500")} />
+                         {user.likes.length}
+                       </Button>
+                    )}
+                     {isOwnProfile && (
+                       <Button
+                           variant="secondary"
+                           onClick={() => setIsEditing(true)}
+                       >
+                           <Pencil className="mr-2 h-4 w-4" /> Edit Profile
+                       </Button>
+                     )}
+                </div>
             </div>
             
             <CardContent className="p-6">
@@ -99,7 +123,7 @@ export default function ProfilePage() {
                 <CardTitle>Daily Thought</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="italic text-muted-foreground">"{user.dailyThought || 'No thought shared today.'}"}</p>
+                <p className="italic text-muted-foreground">"{user.dailyThought || 'No thought shared today.'}"</p>
             </CardContent>
           </Card>
 
@@ -107,7 +131,7 @@ export default function ProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Contact</CardTitle>
-              </CardHeader>
+              </Header>
               <CardContent className="space-y-4">
                 <ContactItem icon={Phone} label="Phone" value={user.contact.phone} />
                 <ContactItem icon={Mail} label="Gmail" value={user.contact.gmail} />
@@ -121,7 +145,7 @@ export default function ProfilePage() {
             <Card>
               <CardHeader>
                  <CardTitle className="flex items-center gap-2"><Gamepad2 className="h-6 w-6" /> Hobbies</CardTitle>
-              </CardHeader>
+              </Header>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                     {user.hobbies.length > 0 ? user.hobbies.map(hobby => (
