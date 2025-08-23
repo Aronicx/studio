@@ -13,7 +13,6 @@ import { ProfileForm } from '@/components/profile-form';
 import { Mail, Phone, Instagram, MessageSquare, Pencil, User as UserIcon, Link as LinkIcon, Gamepad2 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
-import { cn } from "@/lib/utils";
 
 const SnapchatIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 10c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z"/><path d="M22 10v10c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V10c0-1.1.9-2 2-2h3.2c.2-1.3 1-2.4 2-3 .5-1.1 1.7-2 3.8-2 2.1 0 3.3.9 3.8 2 1 .6 1.8 1.7 2 3H20c1.1 0 2 .9 2 2z"/></svg>
@@ -42,7 +41,7 @@ export default function ProfilePage() {
       const foundUser = findUser(String(params.id));
       setUser(foundUser ? {...foundUser} : null);
     }
-  }, [params.id, loggedInUserId]);
+  }, [params.id]);
   
   const isOwnProfile = loggedInUserId === user?.id;
 
