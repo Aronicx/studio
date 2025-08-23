@@ -37,16 +37,16 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
   
-  const isOwnProfile = loggedInUserId === user?.id;
-  const hasLiked = user && loggedInUserId ? user.likes.includes(loggedInUserId) : false;
-
   useEffect(() => {
     if (params.id) {
       const foundUser = findUser(String(params.id));
       setUser(foundUser ? {...foundUser} : null);
     }
-  }, [params.id]);
+  }, [params.id, loggedInUserId]); // Re-fetch or re-evaluate when user changes
   
+  const isOwnProfile = loggedInUserId === user?.id;
+  const hasLiked = user && loggedInUserId ? user.likes.includes(loggedInUserId) : false;
+
   const handleSave = (updatedUserData: User) => {
     updateUser(updatedUserData);
     setUser(updatedUserData);
@@ -89,7 +89,7 @@ export default function ProfilePage() {
         <div className="space-y-8">
           <Card className="overflow-hidden">
             <div className="relative h-48 md:h-64 bg-muted">
-                <Image src={user.profilePicture} alt={user.name} fill objectFit="cover" data-ai-hint="profile picture" />
+                <Image src={user.profilePicture} alt={user.name} layout="fill" objectFit="cover" data-ai-hint="profile picture" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                  <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6">
                     <h1 className="text-3xl md:text-5xl font-bold text-white font-headline">{user.name}</h1>
@@ -97,8 +97,8 @@ export default function ProfilePage() {
                 </div>
                 <div className="absolute top-4 right-4 flex gap-2">
                     {!isOwnProfile && loggedInUserId && (
-                       <Button variant={hasLiked ? 'default' : 'secondary'} onClick={handleLikeToggle}>
-                         <Heart className={cn("mr-2 h-4 w-4", hasLiked && "fill-current text-red-500")} />
+                       <Button variant={hasLiked ? 'destructive' : 'secondary'} onClick={handleLikeToggle}>
+                         <Heart className={cn("mr-2 h-4 w-4", hasLiked && "fill-current text-white")} />
                          {user.likes.length}
                        </Button>
                     )}
