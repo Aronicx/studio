@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -12,12 +13,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Trash2, PlusCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import Image from 'next/image';
 
 const MAX_PASSWORD_CHANGES = 5;
 
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   dailyThought: z.string().max(200, "Thought must be 200 characters or less.").optional(),
+  profilePicture: z.string().optional(),
   contact: z.object({
     phone: z.string().optional(),
     instagram: z.string().optional(),
@@ -45,12 +49,15 @@ interface ProfileFormProps {
 export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
   const { toast } = useToast();
   const router = useRouter();
+  const [picturePreview, setPicturePreview] = useState(user.profilePicture);
+
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user.name,
       dailyThought: user.dailyThought,
+      profilePicture: user.profilePicture,
       contact: {
         phone: user.contact.phone || '',
         instagram: user.contact.instagram || '',
@@ -69,6 +76,19 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
     control: form.control,
     name: "hobbies",
   });
+  
+  const handlePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        setPicturePreview(dataUrl);
+        form.setValue('profilePicture', dataUrl);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const onSubmit = (data: ProfileFormValues) => {
     const originalId = user.id;
@@ -78,6 +98,7 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
       ...user,
       name: data.name,
       id: newId, 
+      profilePicture: data.profilePicture || user.profilePicture,
       dailyThought: data.dailyThought || '',
       contact: data.contact,
       hobbies: data.hobbies.map(h => h.value),
@@ -110,6 +131,13 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
           <CardDescription>This is visible to everyone on the network.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex items-center gap-6">
+            <Image src={picturePreview} alt="Profile preview" width={100} height={100} className="rounded-full aspect-square object-cover" />
+            <div className="flex-grow">
+               <Label htmlFor="profilePicture">Change Profile Picture (JPG)</Label>
+               <Input id="profilePicture" type="file" accept="image/jpeg" onChange={handlePictureChange} />
+            </div>
+          </div>
           <div>
             <Label htmlFor="name">Name</Label>
             <Input id="name" {...form.register('name')} />
