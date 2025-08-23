@@ -13,6 +13,8 @@ import { Trash2, PlusCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 
+const MAX_PASSWORD_CHANGES = 5;
+
 const profileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
   dailyThought: z.string().max(200, "Thought must be 200 characters or less.").optional(),
@@ -81,9 +83,9 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
       hobbies: data.hobbies.map(h => h.value),
     };
 
-    if (data.newPassword && !user.passwordChanged) {
+    if (data.newPassword && user.passwordChanges < MAX_PASSWORD_CHANGES) {
       updatedUser.password = data.newPassword;
-      updatedUser.passwordChanged = true;
+      updatedUser.passwordChanges += 1;
     }
     
     onSave(updatedUser);
@@ -97,6 +99,8 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
         router.replace(`/profile/${newId}`);
     }
   };
+
+  const passwordChangesLeft = MAX_PASSWORD_CHANGES - user.passwordChanges;
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -158,11 +162,11 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
         </CardContent>
       </Card>
 
-      {!user.passwordChanged && (
+      {passwordChangesLeft > 0 ? (
           <Card>
             <CardHeader>
               <CardTitle>Change Password</CardTitle>
-              <CardDescription>You can only change your password once. This action is permanent.</CardDescription>
+              <CardDescription>You can change your password {passwordChangesLeft} more time(s). This action is permanent.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div>
@@ -176,12 +180,11 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
                 </div>
             </CardContent>
           </Card>
-      )}
-       {user.passwordChanged && (
+      ) : (
           <Card>
             <CardHeader>
               <CardTitle>Change Password</CardTitle>
-              <CardDescription className="text-destructive">Your password has already been changed once and cannot be changed again.</CardDescription>
+              <CardDescription className="text-destructive">You have used all your password changes and cannot change it again.</CardDescription>
             </CardHeader>
           </Card>
         )}

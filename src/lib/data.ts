@@ -22,7 +22,7 @@ const generateUsers = (count: number): User[] => {
       profilePicture: `https://placehold.co/400x400.png`,
       dailyThought: "This is your space to share a thought. Make it unique!",
       password: "password", // Default password
-      passwordChanged: false,
+      passwordChanges: 0,
     });
   }
   return users;

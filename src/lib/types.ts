@@ -15,5 +15,5 @@ export interface User {
   profilePicture: string;
   dailyThought: string;
   password: string;
-  passwordChanged: boolean;
+  passwordChanges: number;
 }
