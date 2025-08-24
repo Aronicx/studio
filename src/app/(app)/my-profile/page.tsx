@@ -66,7 +66,7 @@ export default function MyProfilePage() {
         });
 
         if (originalId !== updatedUserData.id) {
-            router.replace(`/my-profile`); 
+            router.replace(`/my-profile`);
         }
 
     } catch (error) {
