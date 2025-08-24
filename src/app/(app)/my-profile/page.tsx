@@ -55,7 +55,8 @@ export default function MyProfilePage() {
   const handleSave = async (updatedUserData: User) => {
     if (!user) return;
     try {
-        await updateUser(user.id, updatedUserData);
+        const originalId = user.id;
+        await updateUser(originalId, updatedUserData);
         setUser(updatedUserData);
         setIsEditing(false);
 
@@ -64,7 +65,7 @@ export default function MyProfilePage() {
             description: "Your changes have been saved successfully.",
         });
 
-        if (user.id !== updatedUserData.id) {
+        if (originalId !== updatedUserData.id) {
             router.replace(`/my-profile`); 
         }
 

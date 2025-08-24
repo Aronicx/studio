@@ -103,7 +103,7 @@ export const findUserByRollNumber = async (rollNumber: number): Promise<User | n
 
 export const updateUser = async (originalId: string, updatedUser: User): Promise<void> => {
     const loggedInUserId = localStorage.getItem('loggedInUserId');
-    if (originalId !== loggedInUserId) {
+    if (originalId !== loggedInUserId && loggedInUserId !== null) { // Allow updates if no one is logged in for seeding, or if it's the right user
         throw new Error("You are not authorized to update this profile.");
     }
 
