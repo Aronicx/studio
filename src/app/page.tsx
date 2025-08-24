@@ -51,7 +51,7 @@ export default function Home() {
         </div>
       </header>
       <main className="flex-1 container py-8">
-        <div className="space-y-4 mb-8">
+        <div className="flex flex-col items-center text-center space-y-4 mb-8">
             <h1 className="text-3xl font-bold tracking-tight">Student Profiles</h1>
             <p className="text-muted-foreground">Browse and connect with your peers.</p>
             <div className="relative">
@@ -65,7 +65,7 @@ export default function Home() {
             </div>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 justify-center">
           {filteredUsers.map((user: User) => (
             <UserCard key={user.id} user={user} />
           ))}
