@@ -102,11 +102,6 @@ export const findUserByRollNumber = async (rollNumber: number): Promise<User | n
 
 
 export const updateUser = async (originalId: string, updatedUser: User): Promise<void> => {
-    const loggedInUserId = localStorage.getItem('loggedInUserId');
-    if (originalId !== loggedInUserId && loggedInUserId !== null) { // Allow updates if no one is logged in for seeding, or if it's the right user
-        throw new Error("You are not authorized to update this profile.");
-    }
-
     // If the ID has changed, we need to delete the old document and create a new one.
     if (originalId !== updatedUser.id) {
         const oldDocRef = doc(db, 'users', originalId);
@@ -118,7 +113,7 @@ export const updateUser = async (originalId: string, updatedUser: User): Promise
         await batch.commit();
 
         // If the logged in user changed their own ID, update localStorage
-        if(loggedInUserId === originalId) {
+        if(localStorage.getItem('loggedInUserId') === originalId) {
             localStorage.setItem('loggedInUserId', updatedUser.id);
         }
     } else {
