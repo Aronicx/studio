@@ -64,8 +64,6 @@ export default function MyProfilePage() {
             description: "Your changes have been saved successfully.",
         });
 
-        // If the user's ID (name) changed, we need to redirect them to the new URL
-        // but since we now use a stable ID, this might not be necessary unless the ID can still change.
         if (user.id !== updatedUserData.id) {
             router.replace(`/my-profile`); 
         }
