@@ -7,17 +7,25 @@ interface AuthContextType {
   loggedInUserId: string | null;
   login: (rollNumber: number, password: string) => boolean;
   logout: () => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUserId = sessionStorage.getItem('loggedInUserId');
-    if (storedUserId) {
-      setLoggedInUserId(storedUserId);
+    try {
+        const storedUserId = sessionStorage.getItem('loggedInUserId');
+        if (storedUserId) {
+          setLoggedInUserId(storedUserId);
+        }
+    } catch (error) {
+        console.error("Could not access session storage:", error);
+    } finally {
+        setLoading(false);
     }
   }, []);
 
@@ -35,10 +43,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.removeItem('loggedInUserId');
     setLoggedInUserId(null);
   };
+  
+  const value = { loggedInUserId, login, logout, loading };
 
   return (
-    <AuthContext.Provider value={{ loggedInUserId, login, logout }}>
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
 }
