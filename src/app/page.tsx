@@ -54,11 +54,11 @@ export default function Home() {
         <div className="flex flex-col items-center text-center space-y-4 mb-8">
             <h1 className="text-3xl font-bold tracking-tight">Student Profiles</h1>
             <p className="text-muted-foreground">Browse and connect with your peers.</p>
-            <div className="relative">
+            <div className="relative w-full max-w-lg">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                     placeholder="Search by name or roll number..."
-                    className="pl-10 w-full max-w-sm"
+                    className="pl-10 w-full"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
