@@ -1,68 +1,80 @@
 
 "use client";
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Search, ShoppingCart, LogIn, LogOut } from 'lucide-react';
-import Image from 'next/image';
+import { Input } from '@/components/ui/input';
+import { LogIn, LogOut, Users, Search } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
-
-const NavLink = ({ href, children, active=false }: { href: string; children: React.ReactNode, active?:boolean }) => (
-  <Link href={href} className={`text-sm hover:text-primary transition-colors ${active ? 'text-primary' : ''}`}>
-    {children}
-  </Link>
-);
+import { users } from '@/lib/data';
+import { UserCard } from '@/components/user-card';
+import type { User } from '@/lib/types';
 
 export default function Home() {
   const { loggedInUserId, logout } = useAuth();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredUsers = users.filter(user =>
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(user.rollNumber).includes(searchTerm)
+  );
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-body">
-      <div className="absolute inset-0 z-0 opacity-20">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl animate-blob"></div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-pink-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-4000"></div>
-      </div>
-      <main className="flex-grow flex flex-col items-center justify-center text-center px-4 relative z-10">
-        <div className="bg-card/30 backdrop-blur-lg rounded-2xl shadow-2xl w-full max-w-7xl mx-auto">
-          <header className="flex justify-between items-center p-6 border-b border-border/20">
-            <Link href="/" className="text-2xl font-bold">SEOtech.</Link>
-            <nav className="hidden md:flex items-center gap-6">
-              <NavLink href="#" active>Home</NavLink>
-              <NavLink href="#">What We Do</NavLink>
-              <NavLink href="#">Services</NavLink>
-              <NavLink href="#">Portfolio</NavLink>
-              <NavLink href="#">Contact</NavLink>
-              <NavLink href="#">Blog</NavLink>
-              <NavLink href="#">FAQs</NavLink>
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <Link href="/" className="mr-6 flex items-center space-x-2">
+            <Users className="h-6 w-6" />
+            <span className="font-bold sm:inline-block">Campus Connect</span>
+          </Link>
+          <div className="flex flex-1 items-center justify-end space-x-4">
+            <nav className="flex items-center space-x-6 text-sm font-medium">
+              {loggedInUserId ? (
+                <>
+                  <Link href={`/profile/${loggedInUserId}`} className="hover:text-primary transition-colors">
+                    My Profile
+                  </Link>
+                  <Button variant="ghost" onClick={logout}>
+                    <LogOut className="mr-2" /> Logout
+                  </Button>
+                </>
+              ) : (
+                <Button asChild>
+                  <Link href="/login">
+                    <LogIn className="mr-2" /> Login
+                  </Link>
+                </Button>
+              )}
             </nav>
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon"><ShoppingCart /></Button>
-              <Button variant="ghost" size="icon"><Search /></Button>
-              <Button>Get Started</Button>
-            </div>
-          </header>
-
-          <div className="flex flex-col md:flex-row items-center p-8 md:p-12 lg:p-20">
-            <div className="md:w-1/2 text-left space-y-6">
-              <p className="font-light tracking-widest text-primary">SEO OPTIMISATION TEMPLATE</p>
-              <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight">
-                SEO <br />
-                OPTIMISATION <br />
-                MAXIMISE <br />
-                YOUR ONLINE <br />
-                VISIBILITY
-              </h1>
-              <p>BOOST YOUR OWN AWESOME WEBSITE</p>
-              <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full px-10 py-6 text-lg font-bold shadow-lg shadow-accent/30 transform hover:scale-105 transition-transform">
-                Start
-              </Button>
-            </div>
-            <div className="md:w-1/2 mt-10 md:mt-0 relative">
-              <Image src="https://placehold.co/800x600.png" width={800} height={600} alt="SEO Optimization Illustration" className="w-full" data-ai-hint="laptop analytics" />
-            </div>
           </div>
         </div>
+      </header>
+      <main className="flex-1 container py-8">
+        <div className="space-y-4 mb-8">
+            <h1 className="text-3xl font-bold tracking-tight">Student Profiles</h1>
+            <p className="text-muted-foreground">Browse and connect with your peers.</p>
+            <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                    placeholder="Search by name or roll number..."
+                    className="pl-10 w-full max-w-sm"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          {filteredUsers.map((user: User) => (
+            <UserCard key={user.id} user={user} />
+          ))}
+        </div>
+        {filteredUsers.length === 0 && (
+            <div className="text-center col-span-full py-12">
+                <p className="text-muted-foreground">No users found matching your search.</p>
+            </div>
+        )}
       </main>
     </div>
   );
