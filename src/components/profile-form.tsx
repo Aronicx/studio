@@ -42,7 +42,7 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 
 interface ProfileFormProps {
   user: User;
-  onSave: (data: User) => void;
+  onSave: (data: User) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -90,7 +90,7 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
     }
   };
 
-  const onSubmit = (data: ProfileFormValues) => {
+  const onSubmit = async (data: ProfileFormValues) => {
     const originalId = user.id;
     const newId = data.name.toLowerCase().replace(/\s+/g, '-');
     
@@ -109,7 +109,7 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
       updatedUser.passwordChanges += 1;
     }
     
-    onSave(updatedUser);
+    await onSave(updatedUser);
     
     toast({
         title: "Profile Saved",

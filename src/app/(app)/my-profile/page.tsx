@@ -30,32 +30,38 @@ const ContactItem = ({ icon: Icon, label, value }: { icon: React.ElementType; la
 
 export default function MyProfilePage() {
   const router = useRouter();
-  const { loggedInUserId, loading } = useAuth();
+  const { loggedInUserId, authLoading } = useAuth();
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
   
   useEffect(() => {
-    if(!loading && !loggedInUserId) {
+    if(authLoading) return;
+    
+    if(!loggedInUserId) {
         router.push('/login');
+        return;
     }
-    if (loggedInUserId) {
-      const foundUser = findUser(loggedInUserId);
-      setUser(foundUser ? {...foundUser} : null);
+    
+    const fetchUser = async () => {
+        const foundUser = await findUser(loggedInUserId);
+        setUser(foundUser);
     }
-  }, [loggedInUserId, loading, router]);
+
+    fetchUser();
+  }, [loggedInUserId, authLoading, router]);
   
-  const handleSave = (updatedUserData: User) => {
-    updateUser(updatedUserData);
+  const handleSave = async (updatedUserData: User) => {
+    await updateUser(updatedUserData);
     setUser(updatedUserData);
     setIsEditing(false);
   };
 
-  if (loading || user === undefined) {
-    return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div></div>;
+  if (user === undefined) {
+    return <div className="flex justify-center items-center h-full"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div></div>;
   }
 
   if (user === null) {
-    return <div className="flex flex-col justify-center items-center h-screen text-center p-4">
+    return <div className="flex flex-col justify-center items-center h-full text-center p-4">
         <UserIcon className="h-24 w-24 text-muted-foreground mb-4" />
         <h1 className="text-4xl font-bold">User Not Found</h1>
         <p className="text-muted-foreground">Could not find your profile. Please try logging in again.</p>

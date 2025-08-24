@@ -9,11 +9,26 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogIn, LogOut, Users, User as UserIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
+import type { User } from '@/lib/types';
 
 export function SideNav() {
-  const { loggedInUserId, logout, loading } = useAuth();
+  const { loggedInUserId, logout, authLoading } = useAuth();
   const pathname = usePathname();
-  const user = loggedInUserId ? findUser(loggedInUserId) : null;
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+        if (loggedInUserId) {
+            const foundUser = await findUser(loggedInUserId);
+            setUser(foundUser);
+        } else {
+            setUser(null);
+        }
+    }
+    fetchUser();
+  }, [loggedInUserId]);
+
 
   const navLinks = [
     { href: '/my-profile', label: 'My Profile', icon: UserIcon, requiresAuth: true },
@@ -46,8 +61,8 @@ export function SideNav() {
       </nav>
 
       <div className="mt-auto">
-        {loading ? (
-          <div className="h-[52px]"></div> 
+        {authLoading ? (
+          <div className="h-[52px] animate-pulse bg-muted rounded-lg"></div> 
         ) : loggedInUserId && user ? (
           <div className="flex items-center gap-2 p-2 rounded-lg border">
             <Avatar>

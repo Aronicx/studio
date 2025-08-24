@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -14,17 +15,21 @@ export default function LoginPage() {
   const [rollNumber, setRollNumber] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = login(parseInt(rollNumber, 10), password);
+    setIsLoggingIn(true);
+    setError('');
+    const success = await login(parseInt(rollNumber, 10), password);
     if (success) {
       router.push('/');
     } else {
       setError('Invalid roll number or password.');
     }
+    setIsLoggingIn(false);
   };
 
   return (
@@ -45,6 +50,7 @@ export default function LoginPage() {
                 value={rollNumber}
                 onChange={(e) => setRollNumber(e.target.value)}
                 required
+                disabled={isLoggingIn}
               />
             </div>
             <div className="space-y-2">
@@ -56,11 +62,17 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoggingIn}
               />
             </div>
             {error && <p className="text-sm text-center text-destructive">{error}</p>}
-            <Button type="submit" className="w-full">
-              <LogIn className="mr-2 h-4 w-4" /> Login
+            <Button type="submit" className="w-full" disabled={isLoggingIn}>
+              {isLoggingIn ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground"></div>
+              ) : (
+                <LogIn className="mr-2 h-4 w-4" />
+              )}
+               Login
             </Button>
           </form>
            <div className="mt-4 text-center text-sm">

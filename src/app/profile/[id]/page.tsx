@@ -1,9 +1,8 @@
 
-
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { findUser, updateUser } from '@/lib/data';
 import type { User } from '@/lib/types';
@@ -33,33 +32,42 @@ const ContactItem = ({ icon: Icon, label, value }: { icon: React.ElementType; la
 
 export default function ProfilePage() {
   const params = useParams();
-  const router = useRouter();
   const { loggedInUserId } = useAuth();
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
   
   useEffect(() => {
     if (params.id) {
-      const foundUser = findUser(String(params.id));
-      setUser(foundUser ? {...foundUser} : null);
+        const fetchUser = async () => {
+            const foundUser = await findUser(String(params.id));
+            setUser(foundUser);
+        }
+        fetchUser();
     }
   }, [params.id]);
   
   const isOwnProfile = loggedInUserId === user?.id;
 
-  const handleSave = (updatedUserData: User) => {
-    updateUser(updatedUserData);
+  const handleSave = async (updatedUserData: User) => {
+    await updateUser(updatedUserData);
     setUser(updatedUserData);
     setIsEditing(false);
   };
 
   if (user === undefined) {
-    return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div></div>;
+    return (
+        <div className="flex h-screen">
+             <SideNav />
+             <main className="flex-1 flex justify-center items-center">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+            </main>
+        </div>
+    );
   }
 
   if (user === null) {
     return (
-        <div className="flex">
+        <div className="flex h-screen">
             <SideNav />
             <main className="flex-1 flex flex-col justify-center items-center text-center p-4">
                 <UserIcon className="h-24 w-24 text-muted-foreground mb-4" />
@@ -134,7 +142,7 @@ export default function ProfilePage() {
                     <Card>
                       <CardHeader>
                          <CardTitle className="flex items-center gap-2"><Gamepad2 className="h-6 w-6" /> Hobbies</CardTitle>
-                      </CardHeader>
+                      </Header>
                       <CardContent>
                         <div className="flex flex-wrap gap-2">
                             {user.hobbies.length > 0 ? user.hobbies.map(hobby => (

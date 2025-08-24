@@ -1,20 +1,36 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { users } from '@/lib/data';
+import { getAllUsers } from '@/lib/data';
 import { UserCard } from '@/components/user-card';
 import type { User } from '@/lib/types';
 
 export default function ProfilesPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredUsers = users.filter(user =>
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      const users = await getAllUsers();
+      setAllUsers(users);
+      setLoading(false);
+    };
+    fetchUsers();
+  }, []);
+
+  const filteredUsers = allUsers.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     String(user.rollNumber).includes(searchTerm)
   );
+
+  if (loading) {
+     return <div className="flex justify-center items-center h-full"><div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div></div>;
+  }
 
   return (
     <div className="flex flex-col items-center w-full">

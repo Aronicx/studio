@@ -6,16 +6,16 @@ import { findUserByRollNumber } from '@/lib/data';
 
 interface AuthContextType {
   loggedInUserId: string | null;
-  login: (rollNumber: number, password: string) => boolean;
+  login: (rollNumber: number, password: string) => Promise<boolean>;
   logout: () => void;
-  loading: boolean;
+  authLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     try {
@@ -26,17 +26,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
         console.error("Could not access localStorage:", error);
     } finally {
-        setLoading(false);
+        setAuthLoading(false);
     }
   }, []);
 
-  const login = (rollNumber: number, password: string): boolean => {
-    const user = findUserByRollNumber(rollNumber);
+  const login = async (rollNumber: number, password: string): Promise<boolean> => {
+    setAuthLoading(true);
+    const user = await findUserByRollNumber(rollNumber);
     if (user && user.password === password) {
       localStorage.setItem('loggedInUserId', user.id);
       setLoggedInUserId(user.id);
+      setAuthLoading(false);
       return true;
     }
+    setAuthLoading(false);
     return false;
   };
 
@@ -45,11 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoggedInUserId(null);
   };
   
-  const value = { loggedInUserId, login, logout, loading };
+  const value = { loggedInUserId, login, logout, authLoading };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 }

@@ -1,35 +1,16 @@
 
 'use client';
 
+import { db } from './firebase';
+import { collection, doc, getDoc, getDocs, setDoc, writeBatch } from 'firebase/firestore';
 import type { User } from './types';
 
-// Function to safely access localStorage
-const getLocalStorage = (key: string, defaultValue: any) => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-        const storedValue = window.localStorage.getItem(key);
-        if (storedValue) {
-            try {
-                return JSON.parse(storedValue);
-            } catch (error) {
-                console.error("Error parsing JSON from localStorage", error);
-                return defaultValue;
-            }
-        }
-    }
-    return defaultValue;
-};
+const usersCollection = collection(db, 'users');
 
-const setLocalStorage = (key: string, value: any) => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem(key, JSON.stringify(value));
-    }
-};
-
-const generateUsers = (count: number): User[] => {
-  const users: User[] = [];
-  for (let i = 1; i <= count; i++) {
+const generateInitialUsers = (): Omit<User, 'id'>[] => {
+  const users: Omit<User, 'id'>[] = [];
+  for (let i = 1; i <= 200; i++) {
     users.push({
-      id: `enter-your-name-${i}`,
       name: "Enter Your Name",
       rollNumber: i,
       college: "Your College",
@@ -51,43 +32,84 @@ const generateUsers = (count: number): User[] => {
   return users;
 };
 
+// Function to seed the database with initial users if it's empty
+export const seedDatabase = async () => {
+    const snapshot = await getDocs(usersCollection);
+    if (snapshot.empty) {
+        console.log("Database is empty, seeding with initial users...");
+        const initialUsers = generateInitialUsers();
+        const batch = writeBatch(db);
 
-// Initialize users from localStorage or generate default
-export let users: User[] = getLocalStorage('users', null);
-if (!users) {
-    users = generateUsers(200);
-    setLocalStorage('users', users);
-}
-
-
-export const findUser = (id: string): User | undefined => {
-    const byId = users.find(u => u.id === id);
-    if (byId) return byId;
-    const byRollNumber = users.find(u => String(u.rollNumber) === id);
-    return byRollNumber;
-}
-
-export const findUserByRollNumber = (rollNumber: number): User | undefined => {
-    return users.find(u => u.rollNumber === rollNumber);
+        initialUsers.forEach((userData) => {
+            const nameId = `enter-your-name-${userData.rollNumber}`;
+            const userDocRef = doc(db, 'users', nameId);
+            batch.set(userDocRef, { ...userData, id: nameId });
+        });
+        
+        await batch.commit();
+        console.log("Database seeded successfully.");
+    } else {
+        console.log("Database already contains users.");
+    }
 };
 
 
-export const updateUser = (updatedUser: User): void => {
-    const index = users.findIndex(u => u.rollNumber === updatedUser.rollNumber);
-    if (index !== -1) {
-        const oldId = users[index].id;
-        if(oldId !== updatedUser.id) {
-            const userWithNewIdIndex = users.findIndex(u => u.id === updatedUser.id);
-            if(userWithNewIdIndex !== -1 && userWithNewIdIndex !== index) {
-                console.warn(`Warning: Duplicate ID detected for ${updatedUser.id}. Overwriting.`);
-                users.splice(userWithNewIdIndex, 1);
-            }
-        }
-        
-        users[index] = updatedUser;
+// In-memory cache to reduce Firestore reads
+let allUsersCache: User[] | null = null;
+let cacheTimestamp: number | null = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-    } else {
-        users.push(updatedUser);
+const isCacheValid = () => {
+    return allUsersCache && cacheTimestamp && (Date.now() - cacheTimestamp < CACHE_DURATION);
+}
+
+export const getAllUsers = async (): Promise<User[]> => {
+    if (isCacheValid()) {
+        return allUsersCache!;
     }
-    setLocalStorage('users', users); // Save updated users array to localStorage
+
+    const snapshot = await getDocs(usersCollection);
+    if (snapshot.empty) {
+        await seedDatabase();
+        const seededSnapshot = await getDocs(usersCollection);
+        allUsersCache = seededSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+    } else {
+        allUsersCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+    }
+    
+    cacheTimestamp = Date.now();
+    return allUsersCache;
+}
+
+
+export const findUser = async (id: string): Promise<User | null> => {
+    // Try finding by ID first
+    const docRef = doc(db, 'users', id);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() } as User;
+    }
+    
+    // If not found by ID, try finding by roll number
+    const users = await getAllUsers();
+    const user = users.find(u => String(u.rollNumber) === id);
+    
+    return user || null;
+}
+
+export const findUserByRollNumber = async (rollNumber: number): Promise<User | null> => {
+    const users = await getAllUsers();
+    const user = users.find(u => u.rollNumber === rollNumber);
+    return user || null;
+};
+
+
+export const updateUser = async (updatedUser: User): Promise<void> => {
+    const userDocRef = doc(db, 'users', updatedUser.id);
+    await setDoc(userDocRef, updatedUser, { merge: true });
+
+    // Invalidate cache
+    allUsersCache = null;
+    cacheTimestamp = null;
 };

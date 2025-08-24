@@ -6,18 +6,18 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function HomePage() {
-  const { loggedInUserId, loading } = useAuth();
+  const { loggedInUserId, authLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading) {
+    if (!authLoading) {
       if (loggedInUserId) {
         router.replace('/my-profile');
       } else {
         router.replace('/profiles');
       }
     }
-  }, [loggedInUserId, loading, router]);
+  }, [loggedInUserId, authLoading, router]);
 
   return (
     <div className="flex justify-center items-center h-screen">
