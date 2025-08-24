@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { ProfileForm } from '@/components/profile-form';
 import { Mail, Phone, Instagram, MessageSquare, Pencil, User as UserIcon, Link as LinkIcon, Gamepad2 } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { useToast } from '@/hooks/use-toast';
 
 const SnapchatIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 10c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4z"/><path d="M22 10v10c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V10c0-1.1.9-2 2-2h3.2c.2-1.3 1-2.4 2-3 .5-1.1 1.7-2 3.8-2 2.1 0 3.3.9 3.8 2 1 .6 1.8 1.7 2 3H20c1.1 0 2 .9 2 2z"/></svg>
@@ -30,6 +31,7 @@ const ContactItem = ({ icon: Icon, label, value }: { icon: React.ElementType; la
 
 export default function MyProfilePage() {
   const router = useRouter();
+  const { toast } = useToast();
   const { loggedInUserId, authLoading } = useAuth();
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const [isEditing, setIsEditing] = useState(false);
@@ -51,9 +53,31 @@ export default function MyProfilePage() {
   }, [loggedInUserId, authLoading, router]);
   
   const handleSave = async (updatedUserData: User) => {
-    await updateUser(updatedUserData);
-    setUser(updatedUserData);
-    setIsEditing(false);
+    if (!user) return;
+    try {
+        await updateUser(user.id, updatedUserData);
+        setUser(updatedUserData);
+        setIsEditing(false);
+
+        toast({
+            title: "Profile Saved",
+            description: "Your changes have been saved successfully.",
+        });
+
+        // If the user's ID (name) changed, we need to redirect them to the new URL
+        // but since we now use a stable ID, this might not be necessary unless the ID can still change.
+        if (user.id !== updatedUserData.id) {
+            router.replace(`/my-profile`); 
+        }
+
+    } catch (error) {
+        console.error("Failed to update profile:", error);
+        toast({
+            title: "Error",
+            description: (error as Error).message || "Could not save your profile.",
+            variant: "destructive",
+        });
+    }
   };
 
   if (user === undefined) {
@@ -61,14 +85,16 @@ export default function MyProfilePage() {
   }
 
   if (user === null) {
-    return <div className="flex flex-col justify-center items-center h-full text-center p-4">
-        <UserIcon className="h-24 w-24 text-muted-foreground mb-4" />
-        <h1 className="text-4xl font-bold">User Not Found</h1>
-        <p className="text-muted-foreground">Could not find your profile. Please try logging in again.</p>
-        <Button asChild className="mt-6">
-            <a href="/login">Go to Login</a>
-        </Button>
-    </div>;
+    return (
+        <div className="flex flex-col justify-center items-center h-full text-center p-4">
+            <UserIcon className="h-24 w-24 text-muted-foreground mb-4" />
+            <h1 className="text-4xl font-bold">User Not Found</h1>
+            <p className="text-muted-foreground">Could not find your profile. Please try logging in again.</p>
+            <Button asChild className="mt-6">
+                <a href="/login">Go to Login</a>
+            </Button>
+        </div>
+    );
   }
 
   return (
@@ -81,7 +107,7 @@ export default function MyProfilePage() {
             <div className="relative h-48 md:h-64 bg-muted">
                 <Image src={user.profilePicture} alt={user.name} layout="fill" objectFit="cover" data-ai-hint="profile picture" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                 <div className="absolute bottom-4 left-4 md:bottom-6 md-left-6">
+                 <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6">
                     <h1 className="text-3xl md:text-5xl font-bold text-white font-headline">{user.name}</h1>
                     <Badge variant="secondary" className="mt-2 text-base">Roll No: {user.rollNumber}</Badge>
                 </div>
@@ -113,7 +139,7 @@ export default function MyProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Contact</CardTitle>
-              </CardHeader>
+              </Header>
               <CardContent className="space-y-4">
                 <ContactItem icon={Phone} label="Phone" value={user.contact.phone} />
                 <ContactItem icon={Mail} label="Gmail" value={user.contact.gmail} />
@@ -127,7 +153,7 @@ export default function MyProfilePage() {
             <Card>
               <CardHeader>
                  <CardTitle className="flex items-center gap-2"><Gamepad2 className="h-6 w-6" /> Hobbies</CardTitle>
-              </CardHeader>
+              </Header>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                     {user.hobbies.length > 0 ? user.hobbies.map(hobby => (

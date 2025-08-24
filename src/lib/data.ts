@@ -2,7 +2,7 @@
 'use client';
 
 import { db } from './firebase';
-import { collection, doc, getDoc, getDocs, setDoc, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc, writeBatch, deleteDoc } from 'firebase/firestore';
 import type { User } from './types';
 
 const usersCollection = collection(db, 'users');
@@ -41,7 +41,7 @@ export const seedDatabase = async () => {
         const batch = writeBatch(db);
 
         initialUsers.forEach((userData) => {
-            const nameId = `enter-your-name-${userData.rollNumber}`;
+            const nameId = `user-${userData.rollNumber}`;
             const userDocRef = doc(db, 'users', nameId);
             batch.set(userDocRef, { ...userData, id: nameId });
         });
@@ -83,17 +83,13 @@ export const getAllUsers = async (): Promise<User[]> => {
 
 
 export const findUser = async (id: string): Promise<User | null> => {
-    // Try finding by ID first
-    const docRef = doc(db, 'users', id);
-    const docSnap = await getDoc(docRef);
-
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() } as User;
-    }
-    
-    // If not found by ID, try finding by roll number
     const users = await getAllUsers();
-    const user = users.find(u => String(u.rollNumber) === id);
+    // Try finding by ID first.
+    let user = users.find(u => u.id === id);
+    if (user) return user;
+    
+    // If not found by ID, try finding by roll number as a fallback.
+    user = users.find(u => String(u.rollNumber) === id);
     
     return user || null;
 }
@@ -105,9 +101,31 @@ export const findUserByRollNumber = async (rollNumber: number): Promise<User | n
 };
 
 
-export const updateUser = async (updatedUser: User): Promise<void> => {
-    const userDocRef = doc(db, 'users', updatedUser.id);
-    await setDoc(userDocRef, updatedUser, { merge: true });
+export const updateUser = async (originalId: string, updatedUser: User): Promise<void> => {
+    const loggedInUserId = localStorage.getItem('loggedInUserId');
+    if (originalId !== loggedInUserId) {
+        throw new Error("You are not authorized to update this profile.");
+    }
+
+    // If the ID has changed, we need to delete the old document and create a new one.
+    if (originalId !== updatedUser.id) {
+        const oldDocRef = doc(db, 'users', originalId);
+        const newDocRef = doc(db, 'users', updatedUser.id);
+        
+        const batch = writeBatch(db);
+        batch.delete(oldDocRef);
+        batch.set(newDocRef, updatedUser);
+        await batch.commit();
+
+        // If the logged in user changed their own ID, update localStorage
+        if(loggedInUserId === originalId) {
+            localStorage.setItem('loggedInUserId', updatedUser.id);
+        }
+    } else {
+        // If ID is the same, just update the document.
+        const userDocRef = doc(db, 'users', updatedUser.id);
+        await setDoc(userDocRef, updatedUser, { merge: true });
+    }
 
     // Invalidate cache
     allUsersCache = null;

@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   name: string;
@@ -14,6 +15,6 @@ export interface User {
   hobbies: string[];
   profilePicture: string;
   dailyThought: string;
-  password: string;
+  password?: string; // Password is now optional as we move towards a more secure system
   passwordChanges: number;
 }

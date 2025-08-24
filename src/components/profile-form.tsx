@@ -11,8 +11,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Trash2, PlusCircle } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast";
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Image from 'next/image';
 
@@ -47,10 +45,7 @@ interface ProfileFormProps {
 }
 
 export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
-  const { toast } = useToast();
-  const router = useRouter();
   const [picturePreview, setPicturePreview] = useState(user.profilePicture);
-
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -91,8 +86,8 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
   };
 
   const onSubmit = async (data: ProfileFormValues) => {
-    const originalId = user.id;
-    const newId = data.name.toLowerCase().replace(/\s+/g, '-');
+    // Generate a more robust ID based on the original roll number, not the name
+    const newId = `user-${user.rollNumber}`;
     
     const updatedUser: User = {
       ...user,
@@ -110,15 +105,6 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
     }
     
     await onSave(updatedUser);
-    
-    toast({
-        title: "Profile Saved",
-        description: "Your changes have been saved successfully.",
-    });
-
-    if (originalId !== newId) {
-        router.replace(`/profile/${newId}`);
-    }
   };
 
   const passwordChangesLeft = MAX_PASSWORD_CHANGES - user.passwordChanges;
@@ -173,7 +159,7 @@ export function ProfileForm({ user, onSave, onCancel }: ProfileFormProps) {
       <Card>
         <CardHeader>
           <CardTitle>Hobbies</CardTitle>
-        </CardHeader>
+        </Header>
         <CardContent className="space-y-2">
           {fields.map((field, index) => (
             <div key={field.id} className="flex items-center gap-2">
