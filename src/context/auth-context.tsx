@@ -1,3 +1,4 @@
+
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -18,12 +19,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-        const storedUserId = sessionStorage.getItem('loggedInUserId');
+        const storedUserId = localStorage.getItem('loggedInUserId');
         if (storedUserId) {
           setLoggedInUserId(storedUserId);
         }
     } catch (error) {
-        console.error("Could not access session storage:", error);
+        console.error("Could not access localStorage:", error);
     } finally {
         setLoading(false);
     }
@@ -32,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (rollNumber: number, password: string): boolean => {
     const user = findUserByRollNumber(rollNumber);
     if (user && user.password === password) {
-      sessionStorage.setItem('loggedInUserId', user.id);
+      localStorage.setItem('loggedInUserId', user.id);
       setLoggedInUserId(user.id);
       return true;
     }
@@ -40,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    sessionStorage.removeItem('loggedInUserId');
+    localStorage.removeItem('loggedInUserId');
     setLoggedInUserId(null);
   };
   
