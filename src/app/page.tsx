@@ -1,78 +1,69 @@
+
 "use client";
 
-import { useState, useMemo } from 'react';
-import { users } from '@/lib/data';
-import { UserCard } from '@/components/user-card';
-import { Input } from '@/components/ui/input';
-import { Search, Users, LogIn, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Search, ShoppingCart, LogIn, LogOut } from 'lucide-react';
+import Image from 'next/image';
 import { useAuth } from '@/context/auth-context';
 
+const NavLink = ({ href, children, active=false }: { href: string; children: React.ReactNode, active?:boolean }) => (
+  <Link href={href} className={`text-sm hover:text-primary transition-colors ${active ? 'text-primary' : ''}`}>
+    {children}
+  </Link>
+);
+
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState('');
   const { loggedInUserId, logout } = useAuth();
 
-  const filteredUsers = useMemo(() => {
-    if (!searchQuery) {
-      return users;
-    }
-    return users.filter(
-      (user) =>
-        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        String(user.rollNumber).includes(searchQuery)
-    );
-  }, [searchQuery]);
-
   return (
-    <main className="container mx-auto px-4 py-8">
-      <header className="flex justify-between items-center mb-12">
-        <div className="text-left">
-          <h1 className="text-5xl font-bold text-primary mb-2 font-headline">Campus Connect</h1>
-          <p className="text-lg text-muted-foreground">Find and connect with your peers.</p>
-        </div>
-        <div>
-          {loggedInUserId ? (
-            <Button onClick={logout}>
-              <LogOut className="mr-2 h-4 w-4" /> Logout
-            </Button>
-          ) : (
-            <Button asChild>
-              <Link href="/login">
-                <LogIn className="mr-2 h-4 w-4" /> Login
-              </Link>
-            </Button>
-          )}
-        </div>
-      </header>
-
-      <div className="mb-12 max-w-lg mx-auto">
-          <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                  type="search"
-                  placeholder="Search by name or roll number..."
-                  className="w-full pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-              />
-          </div>
+    <div className="min-h-screen bg-background text-foreground flex flex-col font-body">
+      <div className="absolute inset-0 z-0 opacity-20">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl animate-blob"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-pink-600 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-4000"></div>
       </div>
+      <main className="flex-grow flex flex-col items-center justify-center text-center px-4 relative z-10">
+        <div className="bg-card/30 backdrop-blur-lg rounded-2xl shadow-2xl w-full max-w-7xl mx-auto">
+          <header className="flex justify-between items-center p-6 border-b border-border/20">
+            <Link href="/" className="text-2xl font-bold">SEOtech.</Link>
+            <nav className="hidden md:flex items-center gap-6">
+              <NavLink href="#" active>Home</NavLink>
+              <NavLink href="#">What We Do</NavLink>
+              <NavLink href="#">Services</NavLink>
+              <NavLink href="#">Portfolio</NavLink>
+              <NavLink href="#">Contact</NavLink>
+              <NavLink href="#">Blog</NavLink>
+              <NavLink href="#">FAQs</NavLink>
+            </nav>
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" size="icon"><ShoppingCart /></Button>
+              <Button variant="ghost" size="icon"><Search /></Button>
+              <Button>Get Started</Button>
+            </div>
+          </header>
 
-
-      {filteredUsers.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 justify-center">
-          {filteredUsers.map((user) => (
-            <UserCard key={user.id} user={user} />
-          ))}
+          <div className="flex flex-col md:flex-row items-center p-8 md:p-12 lg:p-20">
+            <div className="md:w-1/2 text-left space-y-6">
+              <p className="font-light tracking-widest text-primary">SEO OPTIMISATION TEMPLATE</p>
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight">
+                SEO <br />
+                OPTIMISATION <br />
+                MAXIMISE <br />
+                YOUR ONLINE <br />
+                VISIBILITY
+              </h1>
+              <p>BOOST YOUR OWN AWESOME WEBSITE</p>
+              <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full px-10 py-6 text-lg font-bold shadow-lg shadow-accent/30 transform hover:scale-105 transition-transform">
+                Start
+              </Button>
+            </div>
+            <div className="md:w-1/2 mt-10 md:mt-0 relative">
+              <Image src="https://placehold.co/800x600.png" width={800} height={600} alt="SEO Optimization Illustration" className="w-full" data-ai-hint="laptop analytics" />
+            </div>
+          </div>
         </div>
-      ) : (
-         <div className="text-center py-16">
-          <Users className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-semibold">No users found</h2>
-          <p className="text-muted-foreground">Try adjusting your search.</p>
-        </div>
-      )}
-    </main>
+      </main>
+    </div>
   );
 }
