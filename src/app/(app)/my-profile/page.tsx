@@ -65,8 +65,6 @@ export default function MyProfilePage() {
             description: "Your changes have been saved successfully.",
         });
 
-        // The user ID should not change anymore with the reverted logic,
-        // but keeping this for safety in case it's manually altered.
         if (originalId !== updatedUserData.id) {
             router.replace(`/my-profile`); 
         }
